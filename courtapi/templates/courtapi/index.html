@@ -1,0 +1,423 @@
+{% extends "./base.html" %}
+{% load static %}
+
+{% block style %}
+    <style>
+
+        #testen {
+            padding-left:0;
+        }
+
+        #wrapper {
+            position: relative;
+            overflow: hidden;
+        }
+
+        #background-picture {
+            position: absolute;
+            top: 80px;
+            left: 0;
+            width: 100%;
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            opacity: 0.7; /* Adjust the opacity as needed */
+            z-index: -1; /* Place the div behind other content */
+        }
+
+        /* Add styles for the content on top of the background */
+        #content {
+            position: relative;
+            z-index: 1; /* Place the content on top of the background */
+        }
+
+        #buttonRow {
+            position: relative;
+            top: 220px;
+            left: 30px;
+        }
+
+        #result {
+            position: relative;
+            top: 100px;
+            left: 430px;
+            width: 650px;
+        }
+
+        .invisible {
+            visibility: hidden;
+        }
+
+        /* Allgemeine Stile für den Button */
+        .word-button {
+            height: 70px;
+            padding: 10px 20px;
+            background-color: #0072c6; /* Eine Farbe, die Word-ähnlich ist */
+            color: #fff; /* Textfarbe */
+            border: none;
+            border-radius: 5px; /* Runde Ecken */
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        /* Stile für den Button beim Überfahren mit der Maus */
+        .word-button:hover {
+            background-color: #005aa3; /* Eine dunklere Farbe im Hover-Zustand */
+        }
+
+        /* Stile für den Button beim Klicken */
+        .word-button:active {
+            background-color: #003d71; /* Eine noch dunklere Farbe im Aktivzustand (Klicken) */
+        }
+
+        .ersetzung {
+            background-color: yellow;
+            animation: fadeBackground 5s forwards; /* Startet die Animation und hält am Ende an */
+        }
+
+        @keyframes fadeBackground {
+            0% {
+                background-color: yellow;
+            }
+            100% {
+                background-color: white; /* Ändern Sie dies zu Ihrer normalen Hintergrundfarbe */
+            }
+        }
+
+        .fade-in {
+                opacity: 0;
+                transition: opacity 1s ease-in-out;
+            }
+
+    </style>
+{% endblock style %}
+
+{% block navbar %}
+    <nav class="navbar navbar-expand-lg sticky-top">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">einfuegen.ch</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
+                    aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#funktionen">Funktionen</a>
+                    </li>
+                    <li class="nav-item d-none d-xxl-inline">
+                        <a class="nav-link" href="#testen">testen</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#makros">Makros</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#installationsanleitung">Installation</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+{% endblock navbar %}
+
+{% block content %}
+    <div class="container text-center">
+        <div id="titel" class="row align-items-center min-vh-100">
+            <div  class="col">
+                <h1 class="display-3">einfuegen.ch</h1>
+                <h2 id="firstTag" class="fade-in lead">copy-paste mit PDF Text leicht gemacht</h2>
+                <div id="secondTag" class="fade-in">
+                    <p class="mt-5">
+                        Begleiterscheinung der Digitalisierung ist das PDF-Format. Leider gestaltet sich die
+                        Weiterverarbeitung von Text im PDF-Format bislang mühselig.
+                    </p>
+                    <p>
+                        Dies betrifft insbesondere das Markieren, Kopieren und Einfügen von PDF Textstellen. Der
+                        eingefügte Text enthält bspw. die bestehenden Zeilenumschaltungen und Worttrennungsstriche 
+                        aus dem PDF-Text, welche im Textverarbeitungsprogramm manuell entfernt werden müssen.
+                    </p>
+                    <p>
+                        Makros, welche in Microsoft Word installiert werden können, erledigen diese Arbeit
+                        automatisch für Sie. Probieren Sie es aus... Zum <a href="#testen">Test</a>, zum
+                        <a href="#funktionen">Funktionsumfang</a>, zu den Versionen, zur Installationsanleitung.
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div id="funktionen" class="row align-items-center min-vh-100">
+            <div class="display-3 mb-3">Funktionen</div>
+            <div class="col-12 col-md-6">
+                <h3>PDF Text konvertieren</h3>
+                <h2 class="lead mb-5">Zeilenumschaltungen und Worttrennungen automatisch erkennen und entfernen</h2>
+                <div id="konvertierungsbeispiel-pdf" class="row p-1 m-1 d-flex align-items-center border border-light-subtle rounded-2 fade-in" >
+                    <div class="col-5">
+                        <p class="beispieltext">Ich bin un-
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-paragraph" viewBox="0 0 16 16">
+                              <path d="M10.5 15a.5.5 0 0 1-.5-.5V2H9v12.5a.5.5 0 0 1-1 0V9H7a4 4 0 1 1 0-8h5.5a.5.5 0 0 1 0 1H11v12.5a.5.5 0 0 1-.5.5z"/>
+                            </svg>
+                            <br>
+                            schuldig.
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-paragraph" viewBox="0 0 16 16">
+                              <path d="M10.5 15a.5.5 0 0 1-.5-.5V2H9v12.5a.5.5 0 0 1-1 0V9H7a4 4 0 1 1 0-8h5.5a.5.5 0 0 1 0 1H11v12.5a.5.5 0 0 1-.5.5z"/>
+                            </svg>
+                            <br>
+                            Gestern
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-paragraph" viewBox="0 0 16 16">
+                              <path d="M10.5 15a.5.5 0 0 1-.5-.5V2H9v12.5a.5.5 0 0 1-1 0V9H7a4 4 0 1 1 0-8h5.5a.5.5 0 0 1 0 1H11v12.5a.5.5 0 0 1-.5.5z"/>
+                            </svg>
+                            <br>
+                            war ich zu-
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-paragraph" viewBox="0 0 16 16">
+                              <path d="M10.5 15a.5.5 0 0 1-.5-.5V2H9v12.5a.5.5 0 0 1-1 0V9H7a4 4 0 1 1 0-8h5.5a.5.5 0 0 1 0 1H11v12.5a.5.5 0 0 1-.5.5z"/>
+                            </svg>
+                            <br>
+                            hause.
+                        </p>
+                    </div>
+                    <div id="pfeil" class="col-2 d-flex align-items-center justify-content-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="currentColor" class="bi bi-caret-right" viewBox="0 0 16 16">
+                          <path d="M6 12.796V3.204L11.481 8 6 12.796zm.659.753 5.48-4.796a1 1 0 0 0 0-1.506L6.66 2.451C6.011 1.885 5 2.345 5 3.204v9.592a1 1 0 0 0 1.659.753z"/>
+                        </svg>
+                    </div>
+                    <div class="col-5">
+                        <p class="beispieltext">
+                            Ich bin unschuldig. Gestern war ich zuhause.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-md-6">
+                <h3>in indirekte Rede umwandeln</h3>
+                <h2 class="lead mb-5">zusätzliche Umwandlung in inderekte Rede und dritte Personalform</h2>
+                <div id="konvertierungsbeispiel-aussage" class="row p1 m-1 d-flex align-items-center border border-light-subtle rounded-2 fade-in">
+                    <div class="col-5">
+                        <p class="beispieltext">Ich bin un-
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-paragraph" viewBox="0 0 16 16">
+                              <path d="M10.5 15a.5.5 0 0 1-.5-.5V2H9v12.5a.5.5 0 0 1-1 0V9H7a4 4 0 1 1 0-8h5.5a.5.5 0 0 1 0 1H11v12.5a.5.5 0 0 1-.5.5z"/>
+                            </svg>
+                            <br>
+                            schuldig.
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-paragraph" viewBox="0 0 16 16">
+                              <path d="M10.5 15a.5.5 0 0 1-.5-.5V2H9v12.5a.5.5 0 0 1-1 0V9H7a4 4 0 1 1 0-8h5.5a.5.5 0 0 1 0 1H11v12.5a.5.5 0 0 1-.5.5z"/>
+                            </svg>
+                            <br>
+                            Gestern
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-paragraph" viewBox="0 0 16 16">
+                              <path d="M10.5 15a.5.5 0 0 1-.5-.5V2H9v12.5a.5.5 0 0 1-1 0V9H7a4 4 0 1 1 0-8h5.5a.5.5 0 0 1 0 1H11v12.5a.5.5 0 0 1-.5.5z"/>
+                            </svg>
+                            <br>
+                            war ich zu-
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-paragraph" viewBox="0 0 16 16">
+                              <path d="M10.5 15a.5.5 0 0 1-.5-.5V2H9v12.5a.5.5 0 0 1-1 0V9H7a4 4 0 1 1 0-8h5.5a.5.5 0 0 1 0 1H11v12.5a.5.5 0 0 1-.5.5z"/>
+                            </svg>
+                            <br>
+                            hause.
+                        </p>
+                    </div>
+                    <div id="pfeil" class="col-2 d-flex align-items-center justify-content-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="currentColor" class="bi bi-caret-right" viewBox="0 0 16 16">
+                          <path d="M6 12.796V3.204L11.481 8 6 12.796zm.659.753 5.48-4.796a1 1 0 0 0 0-1.506L6.66 2.451C6.011 1.885 5 2.345 5 3.204v9.592a1 1 0 0 0 1.659.753z"/>
+                        </svg>
+                    </div>
+                    <div class="col-5">
+                        <p class="beispieltext">
+                            Sie sei unschuldig. Gestern sei sie zuhause gewesen.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+
+        </div>
+    </div>
+    <div id="testen" class="container-fluid min-vh-100 d-none d-xxl-block">
+            <div id="wrapper" class="row min-vh-100">
+                <div id="background-picture">
+                    <p class="anleitung">
+                    Anleitung: Markieren Sie in einem beliebigen PDF einen Text, kopieren Sie diesen und
+                    kommen Sie hierhin zurück und drücken Sie einen Button (z.B. "Kopierter Text aus PDF einfügen")
+                </p>
+                    <img src="{% static 'pictures/libreoffice-screenshot.png' %}" alt="background">
+                </div>
+                <div id="content">
+                    <form>
+                        {% csrf_token %}
+                        <div id="buttonRow">
+                            <button
+                                    type="button"
+                                    name="pasteButtonPDFText"
+                                    id="pasteButtonPDFText"
+                                    class="word-button"
+                                    hx-post="result"
+                                    hx-target="#result">
+                                Kopierter Text aus PDF<br> einfügen
+                            </button>
+                            <button
+                                    type="button"
+                                    name="pasteButtonAussageMann"
+                                    id="pasteButtonAussageMann"
+                                    class="word-button"
+                                    hx-post="result"
+                                    hx-target="#result">
+                                Als Aussage von Mann<br> einfügen
+                            </button>
+                            <button
+                                    type="button"
+                                    name="pasteButtonAussageFrau"
+                                    id="pasteButtonAussageFrau"
+                                    class="word-button"
+                                    hx-post="result"
+                                    hx-target="#result">
+                                Als Aussage von Frau<br> einfügen
+                            </button>
+                        </div>
+
+                        <p>
+                            <textarea
+                                name="pasteTextarea"
+                                id="pasteTextarea"
+                                class="invisible"
+                                rows="5"
+                                cols="40"
+                                hx-post="result"
+                                hx-trigger="change"
+                                hx-target="#result"
+                            >
+                            </textarea>
+                        </p>
+
+                    </form>
+                </div>
+
+                <div id="result"></div>
+            </div>
+        </div>
+    <div class="container text-center">
+        <div id="makros" class="row align-items-center min-vh-100">
+            <div class="col-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h3 class="card-title">Internet</h3>
+                        <ul class="card-text">
+                            <li>Die Textkonvertierung erfolgt immer mit der aktuellsten und umfangreichsten Version</li>
+                            <li>Kein eigenhändiges Versionsupdate erforderlich</li>
+                            <a type="button" class="btn btn-outline-dark">
+                                Zum Makro
+                            </a>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h3 class="card-title">Lokal (on premise)</h3>
+                        <ul class="card-text">
+                            <li>Datenschutzkonform, der Text verlässt den Rechner nicht</li>
+                            <li>Nicht auf Internetverbindung angewiesen</li>
+                            <a type="button" class="btn btn-outline-dark">
+                                Zum Makro
+                            </a>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="installationsanleitung" class="row align-items-center min-vh-100">
+            <div id="carouselExampleIndicators" class="carousel carousel-dark slide">
+              <div class="carousel-indicators">
+                <a type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></a>
+                <a type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="1" aria-label="Slide 2"></a>
+                <a type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="2" aria-label="Slide 3"></a>
+               </div>
+              <div class="carousel-inner">
+                <div class="carousel-item active">
+                    <p style="height: 200px">
+                        Anleitung 1<br>
+                        neue Zeile
+                    </p>
+                </div>
+                <div class="carousel-item">
+                  <p style="height: 200px">
+                      Anleitung 2
+                  </p>
+                </div>
+                <div class="carousel-item">
+                  <p style="height: 200px">
+                      Anleitung 3
+                  </p>
+                </div>
+              </div>
+              <a class="carousel-control-prev" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Previous</span>
+              </a>
+              <a class="carousel-control-next" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Next</span>
+              </a>
+            </div>
+        </div>
+    </div>
+
+{% endblock content %}
+
+{% block script %}
+    <script>
+        const buttons = document.querySelectorAll('button');
+
+        for (const button of buttons) {
+        button.addEventListener('click', function() {
+            // Request clipboard access and read the clipboard data
+            navigator.clipboard.readText()
+            .then(function(clipboardText) {
+                document.getElementById('pasteTextarea').value = clipboardText;
+            })
+            .catch(function(error) {
+                console.error('Failed to read clipboard:', error);
+            });
+        });
+        }
+
+        // beim laden der Seite testen, ob /result geht
+        document.addEventListener("DOMContentLoaded", function() {
+            // Define the fetch options, including 'mode: no-cors'
+            const fetchOptions = {
+                method: "GET",
+                mode: "no-cors", // Set the mode to 'no-cors'
+            };
+
+            // Make an HTTP request to the URL
+            fetch("https://www.einfugen.ch/result", fetchOptions)
+                .then(response => {
+                    if (!response.ok) { // Check for any non-2xx status code
+                        // Display an error message in the <div id="result"></div>
+                        document.getElementById("result").textContent = "Die Firewall des vorliegenden Netzwerk lässt keine Einfügungen zu, da Webanfragen nach einfuegen.ch/result untersagt sind.";
+                    }
+                })
+                .catch(error => {
+                    // Handle any errors that occur during the request
+                    console.error("An error occurred: request to /results not allowed", error);
+                });
+        });
+
+        // Function to handle the fade in effect
+        function fadeIn(elementId) {
+            var element = document.getElementById(elementId);
+            element.style.opacity = 1;
+        }
+
+        // Event handler for the first tag (on load)
+        document.addEventListener('DOMContentLoaded', function () {
+            fadeIn('firstTag');
+        });
+
+        // Event handler for the second tag (on mousemove)
+        document.addEventListener('mousemove', function () {
+            fadeIn('secondTag');
+            fadeIn('konvertierungsbeispiel-pdf');
+            fadeIn('konvertierungsbeispiel-aussage');
+        });
+        </script>
+    {% endblock script %}

@@ -1,0 +1,212 @@
+{% extends "./base.html" %}
+{% load static %}
+
+
+
+{% block title %}
+    <title>PDF Text einfügen showcase</title>
+{% endblock title %}
+
+{% block style %}
+    <style>
+    /* Add styles to the div to make it behave like a background */
+    #background {
+        position: absolute;
+        top: 30px;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-size: cover;
+        background-repeat: no-repeat;
+        background-attachment: fixed;
+        opacity: 0.7; /* Adjust the opacity as needed */
+        z-index: -1; /* Place the div behind other content */
+    }
+
+    /* Add styles for the content on top of the background */
+    #content {
+        position: relative;
+        z-index: 1; /* Place the content on top of the background */
+    }
+
+    #buttonRow {
+        position: relative;
+        top: 135px;
+        left: 30px;
+    }
+
+    #result {
+        position: relative;
+        top: 200px;
+        left: 430px;
+        width: 650px;
+    }
+
+    .invisible {
+        visibility: hidden;
+    }
+
+    #wrapper {
+        position: relative;
+        top: 0;
+        left: 0;
+    }
+
+    /* Allgemeine Stile für den Button */
+    .word-button {
+        height: 70px;
+        padding: 10px 20px;
+        background-color: #0072c6; /* Eine Farbe, die Word-ähnlich ist */
+        color: #fff; /* Textfarbe */
+        border: none;
+        border-radius: 5px; /* Runde Ecken */
+        cursor: pointer;
+        font-size: 14px;
+    }
+
+    /* Stile für den Button beim Überfahren mit der Maus */
+    .word-button:hover {
+        background-color: #005aa3; /* Eine dunklere Farbe im Hover-Zustand */
+    }
+
+    /* Stile für den Button beim Klicken */
+    .word-button:active {
+        background-color: #003d71; /* Eine noch dunklere Farbe im Aktivzustand (Klicken) */
+    }
+
+
+
+    .ersetzung {
+        background-color: yellow;
+        animation: fadeBackground 5s forwards; /* Startet die Animation und hält am Ende an */
+    }
+
+    @keyframes fadeBackground {
+        0% {
+            background-color: yellow;
+        }
+        100% {
+            background-color: white; /* Ändern Sie dies zu Ihrer normalen Hintergrundfarbe */
+        }
+    }
+
+</style>
+{% endblock style %}
+
+{% block content %}
+<h1>PDF Text einfügen Showcase</h1>
+<p>
+    PDF Text kopieren und in ein Textverarbeitungsprogramm einfügen ist mühselig. Der eingefügte Text enthält bspw.
+    die Zeilenumschaltungen und Worttrennungsstriche aus dem PDF-Text, welche im Textverarbeitungsprogramm händisch
+    entfernt werden müssen.
+</p>
+<p>
+    Nachfolgende Buttons, welche in Microsoft Word installiert werden können, erledigen diese Arbeit automatisch für
+    Sie. Probieren Sie es aus...
+</p>
+<p>
+    Markieren Sie einen Text in einem PDF-Dokument und speichern Sie diesen in die Zwischenablage (Ctrl+C).
+    Drücken Sie danach auf einen beliebigen Einfüge-Button (z.B.
+    "Kopierter Text aus PDF einfügen"). Diese Webanwendung speichert keine Nutzer- und Nutzungsdaten.
+</p>
+<p>
+    Wenn Sie Interesse an einer lokalen Installation haben, wenden Sie sich an mich: jonasachermann at mac.com.
+</p>
+<div id="wrapper">
+    <div id="background">
+        <img src="{% static 'pictures/libreoffice-screenshot.png' %}" alt="background">
+    </div>
+    <div id="content">
+        <form>
+            {% csrf_token %}
+            <div id="buttonRow">
+                <button
+                        type="button"
+                        name="pasteButtonPDFText"
+                        id="pasteButtonPDFText"
+                        class="word-button"
+                        hx-post="result"
+                        hx-target="#result">
+                    Kopierter Text aus PDF<br> einfügen
+                </button>
+                <button
+                        type="button"
+                        name="pasteButtonAussageMann"
+                        id="pasteButtonAussageMann"
+                        class="word-button"
+                        hx-post="result"
+                        hx-target="#result">
+                    Als Aussage von Mann<br> einfügen
+                </button>
+                <button
+                        type="button"
+                        name="pasteButtonAussageFrau"
+                        id="pasteButtonAussageFrau"
+                        class="word-button"
+                        hx-post="result"
+                        hx-target="#result">
+                    Als Aussage von Frau<br> einfügen
+                </button>
+            </div>
+
+            <p>
+                <textarea
+                    name="pasteTextarea"
+                    id="pasteTextarea"
+                    class="invisible"
+                    rows="5"
+                    cols="40"
+                    hx-post="result"
+                    hx-trigger="change"
+                    hx-target="#result"
+                >
+                </textarea>
+            </p>
+
+        </form>
+    </div>
+
+    <div id="result"></div>
+</div>
+{% endblock content %}
+
+{% block script %}
+    <script>
+        const buttons = document.querySelectorAll('button');
+
+        for (const button of buttons) {
+        button.addEventListener('click', function() {
+            // Request clipboard access and read the clipboard data
+            navigator.clipboard.readText()
+            .then(function(clipboardText) {
+                document.getElementById('pasteTextarea').value = clipboardText;
+            })
+            .catch(function(error) {
+                console.error('Failed to read clipboard:', error);
+            });
+        });
+        }
+
+        // beim laden der Seite testen, ob /result geht
+        document.addEventListener("DOMContentLoaded", function() {
+            // Define the fetch options, including 'mode: no-cors'
+            const fetchOptions = {
+                method: "GET",
+                mode: "no-cors", // Set the mode to 'no-cors'
+            };
+
+            // Make an HTTP request to the URL
+            fetch("https://www.einfugen.ch/result", fetchOptions)
+                .then(response => {
+                    if (!response.ok) { // Check for any non-2xx status code
+                        // Display an error message in the <div id="result"></div>
+                        document.getElementById("result").textContent = "Die Firewall des vorliegenden Netzwerk lässt keine Einfügungen zu, da Webanfragen nach einfuegen.ch/result untersagt sind.";
+                    }
+                })
+                .catch(error => {
+                    // Handle any errors that occur during the request
+                    console.error("An error occurred: request to /results not allowed", error);
+                });
+        });
+    </script>
+    {% endblock script %}
