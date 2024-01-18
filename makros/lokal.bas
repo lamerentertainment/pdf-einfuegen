@@ -1,13 +1,46 @@
+'''Windows API für Zwischenablagaufruf, Deklarationen
+Declare Function OpenClipboard Lib "User32" (ByVal hwnd As Long) _
+   As Long
+Declare Function CloseClipboard Lib "User32" () As Long
+Declare Function GetClipboardData Lib "User32" (ByVal wFormat As _
+   Long) As Long
+Declare Function GlobalAlloc Lib "kernel32" (ByVal wFlags&, ByVal _
+   dwBytes As Long) As Long
+Declare Function GlobalLock Lib "kernel32" (ByVal hMem As Long) _
+   As Long
+Declare Function GlobalUnlock Lib "kernel32" (ByVal hMem As Long) _
+   As Long
+Declare Function GlobalSize Lib "kernel32" (ByVal hMem As Long) _
+   As Long
+Declare Function lstrcpy Lib "kernel32" (ByVal lpString1 As Any, _
+   ByVal lpString2 As Any) As Long
+ 
+Public Const GHND = &H42
+Public Const CF_TEXT = 1
+Public Const MAXSIZE = 4096
+
+''' Funktion, um Zwischenablage abzurufen
+'''
+''' Diese Funktion ruft den Inhalt der Zwischenablage ab und gibt ihn als String zurück.
+'''
+''' Returns:
+'''     String: Der Inhalt der Zwischenablage
+'''
+''' Hinweise:
+'''     - Diese Funktion verwendet Windows-API-Aufrufe für den Zugriff auf die Zwischenablage.
+'''     - Die Funktion gibt eine leere Zeichenkette zurück, wenn die Zwischenablage nicht zugänglich ist.
+'''
+Function ClipBoard_GetData()
    Dim hClipMemory As Long
    Dim lpClipMemory As Long
    Dim MyString As String
    Dim RetVal As Long
-
+ 
    If OpenClipboard(0&) = 0 Then
       MsgBox "Zwischenablage konnte nicht aufgerufen werden, vielleicht ist sie durch ein anderes Programm geöffnet?"
       Exit Function
    End If
-
+          
    ' Obtain the handle to the global memory
    ' block that is referencing the text.
    hClipMemory = GetClipboardData(CF_TEXT)
@@ -15,27 +48,27 @@
       MsgBox "Could not allocate memory"
       GoTo OutOfHere
    End If
-
+ 
    ' Lock Clipboard memory so we can reference
    ' the actual data string.
    lpClipMemory = GlobalLock(hClipMemory)
-
+ 
    If Not IsNull(lpClipMemory) Then
       MyString = Space$(MAXSIZE)
       RetVal = lstrcpy(MyString, lpClipMemory)
       RetVal = GlobalUnlock(hClipMemory)
-
+       
    Else
       MsgBox "Could not lock memory to copy string from."
    End If
-
+ 
 OutOfHere:
-
+ 
    RetVal = CloseClipboard()
    'Variable MyString in string konvertieren
    MyString = CStr(MyString)
    ClipBoard_GetData = MyString
-
+ 
 End Function
 
 
@@ -60,9 +93,9 @@ Set regex = CreateObject("VBScript.RegExp")
 regex.Global = True
 regex.MultiLine = True
 
-'Hier kann man Redewendungen wie z.B. "Kost und Logis", "nach und nach" ausklammern, das Wort nach "und" muss angegeben werden
+'Hier kann man Redewendungen wie z.B. "Kost und Logis", "nach und nach", "ab und zu", "A und O" ausklammern, das Wort nach "und" muss angegeben werden
 Dim redewendungsausnahmen As String
-redewendungsausnahmen = "(?!\s*Logis|\s*nach|\s*zu)"
+redewendungsausnahmen = "(?!\s*Logis|\s*nach|\s*zu|\s*O\s*)"
 
 'Set the regex pattern to match the word bzw. verb and the rest of the clause until the occurence of ".", ",", "!", "?" or "und" "oder" (the last occurence ist die letzte Gruppe)
 regex.Pattern = verb & _
@@ -75,13 +108,13 @@ regex.Pattern = verb & _
 
 'Loop through all matches in the sentence
     For Each match In regex.Execute(text)
-
+    
         'Debug.Print "match.Value= " + match.Value
-
+        
         Dim groups As Object
         ' nachfolgend werden die Gruppen des regex-patterns (welche mit den klammern bezeichnet werden) erfasst.
         Set groups = match.SubMatches
-
+        
         'Debug.Print "verbersetzung= " + verbersetzung
         'Debug.Print "hilfsverb= " + hilfsverb
         'Debug.Print "groups(0)= " + groups(0)
@@ -90,7 +123,7 @@ regex.Pattern = verb & _
         'Debug.Print "groups(3)= " + groups(3)
         'Debug.Print "groups(4)= " + groups(4)
         'Debug.Print "groups(5)= " + groups(5)
-
+        
         'Der Punkt in groups(1) ist kein Satzende sondern für die Indikation einer abkürzung
         If groups(0) Like "*Fr" _
         Or groups(0) Like "*ca" _
@@ -100,6 +133,18 @@ regex.Pattern = verb & _
         Or groups(0) Like "*bspw" _
         Or groups(0) Like "*etc" _
         Or groups(0) Like "*dat" _
+        Or groups(0) Like "*insb" _
+        Or groups(0) Like "*Mio" _
+        Or groups(0) Like "*Tsd" _
+        Or groups(0) Like "*Jan" _
+        Or groups(0) Like "*Feb" _
+        Or groups(0) Like "*Jun" _
+        Or groups(0) Like "*Jul" _
+        Or groups(0) Like "*Aug" _
+        Or groups(0) Like "*Sep" _
+        Or groups(0) Like "*Okt" _
+        Or groups(0) Like "*Nov" _
+        Or groups(0) Like "*Dez" _
         And groups(1) = "." Then
             'wenn groups(3) ein Punkt ist und das Ende von groups(2) eine Zahl, dürfte es sich um eine währungsangabe handeln
             If groups(3) = "." And IsNumeric(Right(groups(2), 1)) Then
@@ -134,7 +179,7 @@ regex.Pattern = verb & _
             text = Replace(text, match.Value, verbersetzung + groups(0) + " " + hilfsverb + groups(1) + groups(2) + groups(3) + groups(4) + groups(5))
         End If
     Next match
-
+    
 ersetzeVergangenheitsform = text
 
 End Function
@@ -142,7 +187,7 @@ End Function
 
 
 Function FunctionZeilenumbruecheEntfernen(ByVal textstelle As String) As String
-
+    
     'Allfällige Leerzeichen am ende der Zeile löschen
     textstelle = ersetze(textstelle, "\s+$", "")
     'Wenn Buchstabe, Ziffer oder Unterstrich am Ende der Zeile (ausser Bindestrich), Leerschlag hinzufügen
@@ -154,44 +199,87 @@ Function FunctionZeilenumbruecheEntfernen(ByVal textstelle As String) As String
     textstelle = Replace(textstelle, Chr(10), "")
     'Carriage breaks (Zeilenumbrüche) entfernen
     textstelle = Replace(textstelle, Chr(13), "")
-
+    
     'doppelte und dreifache Leerzeichen ersetzen
     textstelle = Replace(textstelle, "  ", " ")
     textstelle = Replace(textstelle, "   ", " ")
-
+    
     'gekreuzte Anführungs- und Schlusszeichenformatierung ersetzen
     textstelle = ersetze(textstelle, Chr(171), Chr(34))
     textstelle = ersetze(textstelle, Chr(187), Chr(34))
+    
+    'Da der PDF-X-Change Editor Leerzeichen mittlerweile selber löscht, aber Worttrennungen nicht, müssen im Text enthaltene Bindestriche entfernt werden
+    'Allerdings sollten Zahlenräume wie z.b. 1-2 Minuten nicht zu 12 Minuten geändert werden, weshalb nur Worttrennungen entfernt werden sollten, die vorne
+    'und hinten einen Charakter, keine Zahl, haben
+    textstelle = Replace(textstelle, " CHF ", " Fr. ")
+    textstelle = Replace(textstelle, " SFR ", " Fr. ")
+    textstelle = Replace(textstelle, ".00 ", ".-- ")
+    
+    'entferne Platzhalterquadrat für unbekanntes Zeichen
+    textstelle = Replace(textstelle, ChrW(0), "")
+    
+    'Das Returnstatment funktioniert inden man den Namen der Funktion mit dem Return gleichsetzt
+    FunctionZeilenumbruecheEntfernen = textstelle
+    
+End Function
 
+Function EntferneWorttrennungenImText(ByVal inputText As String) As String
+    'Da der PDF-X-Change Editor Leerzeichen mittlerweile selber löscht, aber Worttrennungen nicht, müssen im Text enthaltene Bindestriche entfernt werden
+    'Allerdings sollten Zahlenräume wie z.b. 1-2 Minuten nicht zu 12 Minuten geändert werden, weshalb nur Worttrennungen entfernt werden sollten, die vorne
+    'und hinten einen Charakter, keine Zahl, haben
+    Dim words() As String
+    Dim i As Integer
+    
+    ' Zerlege den Text in Wörter
+    words = Split(inputText, " ")
+    
+    ' Iteriere durch die Wörter
+    For i = 0 To UBound(words)
+        Debug.Print words(i)
+        ' Suche nach Bindestrichen
+        If InStr(words(i), "-") > 0 Then
+            ' Prüfe, dass vor und nach dem Trennzeichen keine Nummer und kein Leerzeichen steht.
+            If (Not IsNumeric(Left(words(i), 1)) And Left(words(i), 1) <> " ") _
+                And (Not IsNumeric(Right(words(i), 1)) And Right(words(i), 1) <> " ") Then
+                ' Entferne den Bindestrich
+                words(i) = Replace(words(i), "-", "")
+                Debug.Print words(i)
+            End If
+        End If
+    Next i
+    
+    ' Setze die Wörter wieder zusammen und entferne zusätzliche Leerzeichen
+    EntferneWorttrennungenImText = Trim(Join(words, " "))
+End Function
+
+Function SpezifischeFormatierungen(ByVal textstelle As String) As String
+    
     'Frankenformatierung
     textstelle = Replace(textstelle, " CHF ", " Fr. ")
     textstelle = Replace(textstelle, " SFR ", " Fr. ")
     textstelle = Replace(textstelle, ".00 ", ".-- ")
-
-    'entferne Platzhalterquadrat für unbekanntes Zeichen
-    textstelle = Replace(textstelle, ChrW(0), "")
-
+    
     'Das Returnstatment funktioniert inden man den Namen der Funktion mit dem Return gleichsetzt
-    FunctionZeilenumbruecheEntfernen = textstelle
-
+    SpezifischeFormatierungen = textstelle
+    
 End Function
 
 Private Function RegelmaessigeOCRFehlerErsetzung(textstelle As String) As String
 
     'lch (Ich falsch geschrieben)
     textstelle = Replace(textstelle, "lch ", "Ich ")
-
+    
     'fehlerhafte Interpretation des Anführungszeichens
     textstelle = ersetze(textstelle, ",,", Chr(34))
-
+    
     'fehlerhafte Interpretation des Prozentzeichens
     textstelle = ersetze(textstelle, "o/o", "%")
-
+    
     'regelmässige falsche Erkennung des w - test ohne Leerzeichen
     textstelle = Replace(textstelle, "nrv", "rw")
     textstelle = Replace(textstelle, "nru", "rw")
     textstelle = Replace(textstelle, "nry", "rw")
-
+    
     'Ersetzung von OCR Fehlern: das grosse I wird fehlerhaft als l erkannt
     'In
     textstelle = Replace(textstelle, " ln ", " In ")
@@ -459,7 +547,18 @@ Private Function RegelmaessigeOCRFehlerErsetzung(textstelle As String) As String
     textstelle = Replace(textstelle, " lhres ", " Ihres ")
     textstelle = Replace(textstelle, " lhres,", " Ihres,")
     textstelle = Replace(textstelle, " lhres.", " Ihres.")
+    'Anrufe
+    textstelle = Replace(textstelle, " Arwfe ", " Anrufe ")
+    textstelle = Replace(textstelle, " Arwfe,", " Anrufe,")
+    textstelle = Replace(textstelle, " Arwfe.", " Anrufe.")
+    'Inventar
+    textstelle = Replace(textstelle, " lnventar ", " Inventar ")
+    textstelle = Replace(textstelle, " lnventar,", " Inventar,")
+    textstelle = Replace(textstelle, " lnventar.", " Inventar.")
+    'In
+    textstelle = Replace(textstelle, " ln ", " In ")
 
+    
     RegelmaessigeOCRFehlerErsetzung = textstelle
 
 End Function
@@ -494,7 +593,7 @@ Private Function PronomenErsetzungMaennlich(textstelle As String) As String
     textstelle = Replace(textstelle, "Ich ", "Er ")
     'lch (Ich falsch geschrieben)
     textstelle = Replace(textstelle, "lch ", "Er ")
-
+    
     'mein
     textstelle = Replace(textstelle, " mein ", " sein ")
     textstelle = Replace(textstelle, " mein, ", " sein, ")
@@ -562,10 +661,10 @@ Private Function PronomenErsetzungMaennlich(textstelle As String) As String
     textstelle = Replace(textstelle, " uns, ", " sich/ihnen, ")
     textstelle = Replace(textstelle, " uns. ", " sich/ihnen. ")
     textstelle = Replace(textstelle, "Uns ", "Sich/Ihnen ")
-
+    
     'Das Returnstatment funktioniert inden man den Namen der Funktion mit dem Return gleichsetzt
     PronomenErsetzungMaennlich = textstelle
-
+    
 End Function
 
 Private Function PronomenErsetzungFuerFrageMaennlich(textstelle As String) As String
@@ -580,7 +679,7 @@ Private Function PronomenErsetzungFuerFrageMaennlich(textstelle As String) As St
     textstelle = Replace(textstelle, " sie ", " er ")
     textstelle = Replace(textstelle, " sie, ", " er, ")
     textstelle = Replace(textstelle, " sie. ", " er. ")
-
+    
     'Ihr
     textstelle = Replace(textstelle, " Ihr ", " sein ")
     textstelle = Replace(textstelle, " Ihr, ", " sein, ")
@@ -623,7 +722,7 @@ Private Function PronomenErsetzungFuerFrageMaennlich(textstelle As String) As St
     textstelle = Replace(textstelle, " ihnen ", " ihm ")
     textstelle = Replace(textstelle, " ihnen, ", " ihm, ")
     textstelle = Replace(textstelle, " ihnen. ", " ihm. ")
-
+    
     'wir
     textstelle = Replace(textstelle, " wir ", " man ")
     textstelle = Replace(textstelle, " wir, ", " man, ")
@@ -634,11 +733,11 @@ Private Function PronomenErsetzungFuerFrageMaennlich(textstelle As String) As St
     textstelle = Replace(textstelle, " ich, ", " man, ")
     textstelle = Replace(textstelle, " ich. ", " man. ")
     textstelle = Replace(textstelle, "Ich ", "man ")
-
-
+    
+    
     'Das Returnstatment funktioniert inden man den Namen der Funktion mit dem Return gleichsetzt
     PronomenErsetzungFuerFrageMaennlich = textstelle
-
+    
 End Function
 
 Private Function PronomenErsetzungFuerFrageWeiblich(textstelle As String) As String
@@ -653,7 +752,7 @@ Private Function PronomenErsetzungFuerFrageWeiblich(textstelle As String) As Str
     textstelle = Replace(textstelle, " sie ", " sie ")
     textstelle = Replace(textstelle, " sie, ", " sie, ")
     textstelle = Replace(textstelle, " sie. ", " sie. ")
-
+    
     'Ihr
     textstelle = Replace(textstelle, " Ihr ", " ihr ")
     textstelle = Replace(textstelle, " Ihr, ", " ihr, ")
@@ -684,7 +783,7 @@ Private Function PronomenErsetzungFuerFrageWeiblich(textstelle As String) As Str
     textstelle = Replace(textstelle, " Ihnen, ", " ihr, ")
     textstelle = Replace(textstelle, " Ihnen. ", " ihr. ")
     textstelle = Replace(textstelle, "Ihnen ", "Ihr ")
-
+    
     'wir
     textstelle = Replace(textstelle, " wir ", " man ")
     textstelle = Replace(textstelle, " wir, ", " man, ")
@@ -695,10 +794,10 @@ Private Function PronomenErsetzungFuerFrageWeiblich(textstelle As String) As Str
     textstelle = Replace(textstelle, " ich, ", " man, ")
     textstelle = Replace(textstelle, " ich. ", " man. ")
     textstelle = Replace(textstelle, "Ich ", "man ")
-
+    
     'Das Returnstatment funktioniert inden man den Namen der Funktion mit dem Return gleichsetzt
     PronomenErsetzungFuerFrageWeiblich = textstelle
-
+    
 End Function
 
 Private Function VerbenkonvertierungMehrzahlEinzahl(textstelle As String) As String
@@ -714,14 +813,14 @@ Private Function VerbenkonvertierungMehrzahlEinzahl(textstelle As String) As Str
     textstelle = Replace(textstelle, "Möchten ", "Wolle ")
     textstelle = Replace(textstelle, " möchten, ", " wolle, ")
     textstelle = Replace(textstelle, " möchten. ", " wolle. ")
-
+    
     'Das Returnstatment funktioniert inden man den Namen der Funktion mit dem Return gleichsetzt
     VerbenkonvertierungMehrzahlEinzahl = textstelle
-
+    
 End Function
 
 Private Function PronomenErsetzungWeiblich(textstelle As String) As String
-
+    
     'Drittpersonen müssen zuerst ersetzt werden, sonst wird die Ersetzung von der Erst- auf die Dritttperson erneut übersetzt
     'er
     textstelle = Replace(textstelle, " er ", " dieser ")
@@ -741,7 +840,7 @@ Private Function PronomenErsetzungWeiblich(textstelle As String) As String
     textstelle = Replace(textstelle, " sie, ", " diese, ")
     textstelle = Replace(textstelle, " sie. ", " diese. ")
     textstelle = Replace(textstelle, "Sie ", "Diese ")
-
+    
     'Ich
     textstelle = Replace(textstelle, " ich ", " sie ")
     textstelle = Replace(textstelle, " ich, ", " sie, ")
@@ -749,7 +848,7 @@ Private Function PronomenErsetzungWeiblich(textstelle As String) As String
     textstelle = Replace(textstelle, "Ich ", "Sie ")
     'lch (Ich falsch geschrieben)
     textstelle = Replace(textstelle, "lch ", "Sie ")
-
+    
     'mein
     textstelle = Replace(textstelle, " mein ", " ihr ")
     textstelle = Replace(textstelle, " mein, ", " ihr, ")
@@ -817,12 +916,12 @@ Private Function PronomenErsetzungWeiblich(textstelle As String) As String
     textstelle = Replace(textstelle, " uns, ", " sich/ihnen, ")
     textstelle = Replace(textstelle, " uns. ", " sich/ihnen. ")
     textstelle = Replace(textstelle, "Uns ", "Sich/Ihnen ")
-
-
-
+    
+    
+    
     'Das Returnstatment funktioniert inden man den Namen der Funktion mit dem Return gleichsetzt
     PronomenErsetzungWeiblich = textstelle
-
+    
 End Function
 
 
@@ -1107,8 +1206,31 @@ Private Function VerbenErsetzung(textstelle As String) As String
     textstelle = Replace(textstelle, " sitzt ", " sitze ")
     textstelle = Replace(textstelle, " sitzt,", " sitze,")
     textstelle = Replace(textstelle, " sitzt.", " sitze.")
-
-
+    'Sie/er berichtet
+    textstelle = Replace(textstelle, " berichtet ", " berichte ")
+    textstelle = Replace(textstelle, " berichtet,", " berichte,")
+    textstelle = Replace(textstelle, " berichtet.", " berichte.")
+    'Sie/er versteht
+    textstelle = Replace(textstelle, " versteht ", " verstehe ")
+    textstelle = Replace(textstelle, " versteht,", " verstehe,")
+    textstelle = Replace(textstelle, " versteht.", " verstehe.")
+    'Sie/er beauftragt
+    textstelle = Replace(textstelle, " beauftragt ", " beauftrage ")
+    textstelle = Replace(textstelle, " beauftragt,", " beauftrage,")
+    textstelle = Replace(textstelle, " beauftragt.", " beauftrage.")
+    'Sie/er verfügt
+    textstelle = Replace(textstelle, " verfügt ", " verfüge ")
+    textstelle = Replace(textstelle, " verfüge,", " verfüge,")
+    textstelle = Replace(textstelle, " verfüge.", " verfüge.")
+    'Sie/er geniesst
+    textstelle = Replace(textstelle, " geniesst ", " geniesse ")
+    textstelle = Replace(textstelle, " geniesst,", " geniesse,")
+    textstelle = Replace(textstelle, " geniesst.", " geniesse.")
+    'Sie/er bekommt
+    textstelle = Replace(textstelle, " bekommt ", " bekomme ")
+    textstelle = Replace(textstelle, " bekommt,", " bekomme,")
+    textstelle = Replace(textstelle, " bekommt.", " bekomme.")
+    
     '(Ich) bin
     textstelle = Replace(textstelle, " bin ", " sei ")
     textstelle = Replace(textstelle, " bin,", " sei,")
@@ -1382,13 +1504,17 @@ Private Function VerbenErsetzung(textstelle As String) As String
     textstelle = Replace(textstelle, " scheint ", " scheine ")
     textstelle = Replace(textstelle, " scheint,", " scheine,")
     textstelle = Replace(textstelle, " scheint.", " scheine.")
-    'es scheint
+    'es nützt
     textstelle = Replace(textstelle, " nützt ", " nütze ")
     textstelle = Replace(textstelle, " nützt,", " nütze,")
     textstelle = Replace(textstelle, " nützt.", " nütze.")
-
-
-
+    'es überwiegt
+    textstelle = Replace(textstelle, " überwiegt ", " überwiege ")
+    textstelle = Replace(textstelle, " überwiegt,", " überwiege,")
+    textstelle = Replace(textstelle, " überwiegt.", " überwiege.")
+    
+    
+    
     'Wörter direkt an einem Satzzeichen, werden von ersetzeVergangenheitsform nicht erfasst.
     'Zudem braucht es dort die umgekehrte Reihenfolge
     'Es war (es sei gewesen)
@@ -1469,10 +1595,10 @@ Private Function VerbenErsetzung(textstelle As String) As String
     'er meinte (es habe gemeint)
     textstelle = Replace(textstelle, " erklärte,", " habe erklärt,")
     textstelle = Replace(textstelle, " erklärte.", " habe erklärt.")
-
+    
     'Das Returnstatment funktioniert in VBA inden man den Namen der Funktion mit dem Return gleichsetzt
     VerbenErsetzung = textstelle
-
+    
 End Function
 
 
@@ -1682,7 +1808,7 @@ Private Function VergangenheitsVerbenErsetzung(text As String)
     text = ersetzeVergangenheitsform(text, " telefonierte ", " habe ", "telefoniert")
     'Wir telefonierten miteinander. -> Sie hätten miteinander telefoniert.
     text = ersetzeVergangenheitsform(text, " telefonierten ", " hätten ", "telefoniert")
-    'Ich bat in darum.  -> Er habe diesen darum gegebeten.
+    'Ich bat ihn darum.  -> Er habe diesen darum gegebeten.
     text = ersetzeVergangenheitsform(text, " bat ", " habe ", "gebeten")
     'Wir baten diese darum. -> Sie hätten diese darum gebeten.
     text = ersetzeVergangenheitsform(text, " baten ", " hätten ", "gebeten")
@@ -2372,10 +2498,6 @@ Private Function VergangenheitsVerbenErsetzung(text As String)
     text = ersetzeVergangenheitsform(text, " entnahm ", " habe ", "entnommen")
     'Wir entnahmen es. -> Sie hätten es entnommen.
     text = ersetzeVergangenheitsform(text, " entnahmen ", " hätten ", "entnommen")
-    'Ich bestimmte es. -> Er habe es bestimmt.
-    text = ersetzeVergangenheitsform(text, " bestimmte ", " habe ", "bestimmt")
-    'Wir bestimmten es. -> Sie hätten es bestimmt.
-    text = ersetzeVergangenheitsform(text, " bestimmten ", " hätten ", "bestimmt")
     'Ich entschloss es. -> Er habe es entschlossen.
     text = ersetzeVergangenheitsform(text, " entschloss ", " habe ", "entschlossen")
     'Wir entschlossen es. -> Sie hätten es entschlossen.
@@ -2440,8 +2562,6 @@ Private Function VergangenheitsVerbenErsetzung(text As String)
     text = ersetzeVergangenheitsform(text, " überwies ", " habe ", "überwiesen")
     'Wir überwiesen es. -> Sie hätten es überwiesen.
     text = ersetzeVergangenheitsform(text, " überwiesen ", " hätten ", "überwiesen")
-    'Ich verwendete es. -> Er habe es verwendet.
-    text = ersetzeVergangenheitsform(text, " verwendete ", " habe ", "verwendet")
     'Ich entgegnete es. -> Er habe es entgegnet.
     text = ersetzeVergangenheitsform(text, " entgegnete ", " habe ", "entgegnet")
     'Wir entgegneten es. -> Sie hätten es entgegnet.
@@ -2478,7 +2598,44 @@ Private Function VergangenheitsVerbenErsetzung(text As String)
     text = ersetzeVergangenheitsform(text, " einigte ", " habe ", "geeinigt")
     'Wir einigten uns. -> Sie hätten sich geeinigt.
     text = ersetzeVergangenheitsform(text, " einigten ", " hätten ", "geeinigt")
-
+    'Ich gewann es. -> Er habe es gewonnen.
+    text = ersetzeVergangenheitsform(text, " gewann ", " habe ", "gewonnen")
+    'Wir gewannen es. -> Sie hätten es gewonnen.
+    text = ersetzeVergangenheitsform(text, " gewannen ", " hätten ", "gewonnen")
+    'Ich verlor es. -> Er habe es verloren.
+    text = ersetzeVergangenheitsform(text, " verlor ", " habe ", "verloren")
+    'Es oblag diesem. -> Es sei diesem obliegen.
+    text = ersetzeVergangenheitsform(text, " oblag ", " sei ", "obliegen")
+    'Sie oblagen uns. -> Sie seien ihnen obliegen.
+    text = ersetzeVergangenheitsform(text, " oblagen ", " seien ", "obliegen")
+    'Ich brach ein. -> Er sei ein gebrochen.
+    text = ersetzeVergangenheitsform(text, " brach ", " sei ", "gebrochen")
+    'Wir brachen ein. -> Sie seien ein gebrochen.
+    text = ersetzeVergangenheitsform(text, " brachen ", " seien ", "gebrochen")
+    'Ich wechselte es. -> Er habe es gewechselt.
+    text = ersetzeVergangenheitsform(text, " wechselte ", " habe ", "gewechselt")
+    'Wir wechselten es. -> Sie hätten es gewechselt.
+    text = ersetzeVergangenheitsform(text, " wechselten ", " hätten ", "gewechselt")
+    'Ich gab es heraus -> er habe es herausgegeben
+    text = ersetzeVergangenheitsform(text, " gab ", " habe ", "gegeben")
+    'Wir gaben es heraus. -> Sie hätten es heraus gegeben.
+    text = ersetzeVergangenheitsform(text, " gaben ", " hätten ", "gegeben")
+    'Ich schädigte es -> er habe es geschädigt.
+    text = ersetzeVergangenheitsform(text, " schädigte ", " habe ", "geschädigt")
+    'Wir schädigten es . -> Sie hätten es geschädigt.
+    text = ersetzeVergangenheitsform(text, " schädigten ", " hätten ", "geschädigt")
+    'Ich füllte es -> er habe es gefüllt.
+    text = ersetzeVergangenheitsform(text, " füllte ", " habe ", "gefüllt")
+    'Wir füllten es . -> Sie hätten es gefüllt.
+    text = ersetzeVergangenheitsform(text, " füllten ", " hätten ", "gefüllt")
+    'Ich zeichnete es -> er habe es gezeichnet.
+    text = ersetzeVergangenheitsform(text, " zeichnete ", " habe ", "gezeichnet")
+    'Wir zeichneten es . -> Sie hätten es gezeichnet.
+    text = ersetzeVergangenheitsform(text, " zeichneten ", " hätten ", "gezeichnet")
+    'Es lautete auf -> Es habe auf gelautet.
+    text = ersetzeVergangenheitsform(text, " lautete ", " habe ", "gelautet")
+    'Sie lauteten auf -> Sie hätten auf gelautet.
+    text = ersetzeVergangenheitsform(text, " lauteten ", " hätten ", "gelautet")
 
 
     VergangenheitsVerbenErsetzung = text
@@ -2500,7 +2657,7 @@ VerbenZusammenfuegung = RegexObject.Replace(textstelle, zusammenfuegung)
 End Function
 
 Function VerbenZusammenfuegen(text As String)
-
+    
     text = VerbenZusammenfuegung(text, "zurück gehalten", "zurückgehalten")
     text = VerbenZusammenfuegung(text, "an gerufen", "angerufen")
     text = VerbenZusammenfuegung(text, "ab geraten", "abgeraten")
@@ -2581,6 +2738,16 @@ Function VerbenZusammenfuegen(text As String)
     text = VerbenZusammenfuegung(text, "auf gehalten", "aufgehalten")
     text = VerbenZusammenfuegung(text, "durch gehalten", "durchgehalten")
     text = VerbenZusammenfuegung(text, "durch gegeben", "durchgegeben")
+    text = VerbenZusammenfuegung(text, "hinzu gekommen", "hinzugekommen")
+    text = VerbenZusammenfuegung(text, "ein gebrochen", "eingebrochen")
+    text = VerbenZusammenfuegung(text, "heraus gegeben", "herausgegeben")
+    text = VerbenZusammenfuegung(text, "rein gesehen", "reingesehen")
+    text = VerbenZusammenfuegung(text, "vorbei gekommen", "vorbeigekommen")
+    text = VerbenZusammenfuegung(text, "ein gestanden", "eingestanden")
+    text = VerbenZusammenfuegung(text, "vor gelegt", "vorgelegt")
+    text = VerbenZusammenfuegung(text, "weiter geleitet", "weitergeleitet")
+    text = VerbenZusammenfuegung(text, "aus gefüllt", "ausgefüllt")
+    text = VerbenZusammenfuegung(text, "vorbei gebracht", "vorbeigebracht")
 
     VerbenZusammenfuegen = text
 
@@ -2594,11 +2761,13 @@ Function BelegstelleHinzufuegen(ByVal textstelle As String) As String
 
 'Durch die folgende Initialisierung (2 Zeilen) des regexObject bedarf es keiner Einbindung durch Extras -> Verweise -> Microsoft VBScript Regular Expressions 5.5 mehr
 Dim RegexObject As Object
+Dim BelegstellenVerweis As String
 Set RegexObject = CreateObject("VBScript.RegExp")
 RegexObject.Global = False 'nicht nach mehreren Vorkommen suchen
 RegexObject.MultiLine = False 'nicht das Ende jeder Zeile anschauen
 RegexObject.Pattern = "\.\W*$" 'Entspricht dem letzten Punkt und einem oder mehreren Leerzeichen oder Umschlagzeichen am ende
-BelegstelleHinzufuegen = RegexObject.Replace(textstelle, " (Ziff." + Chr(160) + "). ")
+BelegstellenVerweis = "Ziff."
+BelegstelleHinzufuegen = RegexObject.Replace(textstelle, " (" + BelegstellenVerweis + Chr(160) + "). ")
 
 End Function
 
@@ -2634,7 +2803,7 @@ End If
 sel.MoveLeft Unit:=wdCharacter, Count:=3
 End Function
 
-Sub AussagenBeschuldigterEinfuegen()
+Sub AussageMannEinfuegen()
 '
 'Nimmt Text aus der Zwischenablage und führt damit die ZeilenumbruchEntfernen, die PronomenErsetzungMaennlich und die VerbenErsetzung Funktion durch und gibt den Text wieder aus
 '
@@ -2642,6 +2811,8 @@ Sub AussagenBeschuldigterEinfuegen()
     Dim sel_text As String
     sel_text = ClipBoard_GetData()
     sel_text = FunctionZeilenumbruecheEntfernen(sel_text)
+    sel_text = EntferneWorttrennungenImText(sel_text)
+    sel_text = SpezifischeFormatierungen(sel_text)
     sel_text = RegelmaessigeOCRFehlerErsetzung(sel_text)
     sel_text = PronomenErsetzungMaennlich(sel_text)
     sel_text = VergangenheitsVerbenErsetzung(sel_text)
@@ -2650,11 +2821,11 @@ Sub AussagenBeschuldigterEinfuegen()
     sel_text = BelegstelleHinzufuegen(sel_text)
     Selection.TypeText text:=sel_text
     Call MoveCursorBackThreeSteps
-
+    
 End Sub
 
 
-Sub AussagenBeschuldigteEinfuegen()
+Sub AussageFrauEinfuegen()
 '
 'Nimmt den Text aus der Zwischenablage und führt damit die ZeilenumbruchEntfernen, die PronomenErsetzungWeiblich und die VerbenErsetzung Funktion durch und gibt den Text wieder aus
 '
@@ -2662,6 +2833,8 @@ Sub AussagenBeschuldigteEinfuegen()
     Dim sel_text As String
     sel_text = ClipBoard_GetData()
     sel_text = FunctionZeilenumbruecheEntfernen(sel_text)
+    sel_text = EntferneWorttrennungenImText(sel_text)
+    sel_text = SpezifischeFormatierungen(sel_text)
     sel_text = RegelmaessigeOCRFehlerErsetzung(sel_text)
     sel_text = PronomenErsetzungWeiblich(sel_text)
     sel_text = VergangenheitsVerbenErsetzung(sel_text)
@@ -2670,7 +2843,7 @@ Sub AussagenBeschuldigteEinfuegen()
     sel_text = BelegstelleHinzufuegen(sel_text)
     Selection.TypeText text:=sel_text
     Call MoveCursorBackThreeSteps
-
+    
 End Sub
 
 
@@ -2682,12 +2855,14 @@ Sub PDFTextEinfuegen()
     Dim sel_text As String
     sel_text = ClipBoard_GetData()
     sel_text = FunctionZeilenumbruecheEntfernen(sel_text)
+    sel_text = EntferneWorttrennungenImText(sel_text)
+    sel_text = SpezifischeFormatierungen(sel_text)
     sel_text = RegelmaessigeOCRFehlerErsetzung(sel_text)
     Selection.TypeText text:=sel_text
-
+    
 End Sub
 
-Sub FrageAnBeschuldigtenKonvertieren()
+Sub FrageAnMannEinfuegen()
 '
 'Nimmt den Text aus der Zwischenablage und führt damit die ZeilenumbruchEntfernen, die PronomenErsetzungWeiblich und die VerbenErsetzung Funktion durch und gibt den Text wieder aus
 '
@@ -2696,6 +2871,8 @@ Sub FrageAnBeschuldigtenKonvertieren()
 
     sel_text = ClipBoard_GetData()
     sel_text = FunctionZeilenumbruecheEntfernen(sel_text)
+    sel_text = EntferneWorttrennungenImText(sel_text)
+    sel_text = SpezifischeFormatierungen(sel_text)
     sel_text = RegelmaessigeOCRFehlerErsetzung(sel_text)
     sel_text = PronomenErsetzungFuerFrageMaennlich(sel_text)
     sel_text = VergangenheitsVerbenErsetzung(sel_text)
@@ -2709,10 +2886,10 @@ Sub FrageAnBeschuldigtenKonvertieren()
     ' Kursivschrift deaktivieren
     Selection.Font.Italic = False
     Call ZeichenHinterCursorAufNormalschriftStellen
-
+    
 End Sub
 
-Sub FrageAnBeschuldigteKonvertieren()
+Sub FrageAnFrauEinfuegen()
 '
 'Nimmt den Text aus der Zwischenablage und führt damit die ZeilenumbruchEntfernen, die PronomenErsetzungWeiblich und die VerbenErsetzung Funktion durch und gibt den Text wieder aus
 '
@@ -2720,6 +2897,8 @@ Sub FrageAnBeschuldigteKonvertieren()
     Dim sel_text As String
     sel_text = ClipBoard_GetData()
     sel_text = FunctionZeilenumbruecheEntfernen(sel_text)
+    sel_text = EntferneWorttrennungenImText(sel_text)
+    sel_text = SpezifischeFormatierungen(sel_text)
     sel_text = RegelmaessigeOCRFehlerErsetzung(sel_text)
     sel_text = PronomenErsetzungFuerFrageWeiblich(sel_text)
     sel_text = VergangenheitsVerbenErsetzung(sel_text)
@@ -2733,32 +2912,32 @@ Sub FrageAnBeschuldigteKonvertieren()
     ' Kursivschrift deaktivieren
     Selection.Font.Italic = False
     Call ZeichenHinterCursorAufNormalschriftStellen
-
+    
 End Sub
 
 Function ZeichenHinterCursorAufNormalschriftStellen()
     Dim sel_text As String
     Dim cursorPosition As Long
     Dim doc As Document
-
+    
     ' Referenz zum aktiven Dokument
     Set doc = ActiveDocument
-
+    
     ' Cursorposition speichern
     cursorPosition = Selection.Range.Start
-
+    
     ' Text vor dem Cursor (ein Zeichen) extrahieren
     sel_text = Mid(doc.Range(cursorPosition - 1, cursorPosition), 1, 1)
-
+    
     ' Zeichen auf Normalschrift umstellen
     With doc.Range(Start:=cursorPosition - 1, End:=cursorPosition).Font
         .Italic = False
         ' Füge hier weitere gewünschte Formatierungsoptionen hinzu
     End With
-
+    
     ' Cursor an die ursprüngliche Position zurücksetzen
     Selection.SetRange cursorPosition, cursorPosition
-
+    
 End Function
 
 Sub BGerAufruf()
@@ -2767,15 +2946,15 @@ Sub BGerAufruf()
 
     selectedText = Selection.text ' Get the selected text
     EdgePath = "C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe" ' Set the path to Edge browser
-
+    
     selectedText = Replace(selectedText, Chr(160), " ") ' allfällige geschützte Leerschläge (Chr(160)) mit normal Leerschlägen (" ") ersetzen
-
+    
     'allfällige leerzeichen durch bindestriche ersetzen
     If InStr(selectedText, " ") > 0 Then ' Check if there are spaces in the string
         selectedText = Replace(selectedText, " ", "-") ' Replace spaces with hyphens
     End If
-
-
+    
+    
     If selectedText <> "" Then ' Check if something is selected
         Shell EdgePath & " " & "https://www.bger.li/" & selectedText ' Open the selected text as a URL in Edge browser
     Else
@@ -2790,14 +2969,14 @@ Sub GesetzAufruf()
     Dim liste() As String
     Dim gesetz As String
     Dim artikel_nr As String
-
+    
     mark_text = Selection.text
     mark_text = Replace(mark_text, Chr(160), " ") ' allfällige geschützte Leerschläge (Chr(160)) mit normal Leerschlägen (" ") ersetzen
     liste = Split(mark_text)
     gesetz = liste(UBound(liste)) 'letze erscheinung in dieser Split Liste nehmen
     artikel_nr = ExtractWordAfterArt(mark_text)
 
-
+    
     EdgePath = "C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe" ' Set the path to Edge browser
 
     If mark_text <> "" Then ' Check if something is selected
@@ -2805,11 +2984,11 @@ Sub GesetzAufruf()
     Else
         MsgBox "Bitte einen Gesetzesartikel markieren" ' Display message box if nothing is selected
     End If
-
+        
 End Sub
 
 Private Function ExtractWordAfterArt(MyString As String)
-
+    
     Dim MyArray() As String
     Dim result As String
 
@@ -2824,3 +3003,4 @@ Private Function ExtractWordAfterArt(MyString As String)
 
     ExtractWordAfterArt = result
 End Function
+
