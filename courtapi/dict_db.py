@@ -101,6 +101,9 @@ ocr_ersetzungen = {
     "lhr": "Ihr",
     "lhrem": "Ihrem",
     "lhres": "Ihres",
+    "Arwfe": "Anrufe",
+    "lnventar": "Inventar",
+    "ln": "In",
 }
 
 verben_ersetzung_praesens = {
@@ -712,8 +715,6 @@ verben_ersetzung_praeteritum = {
     "erstellten": ["hätten", "erstellt"],
     "entnahm": ["habe", "entnommen"],
     "entnahmen": ["hätten", "entnommen"],
-    "bestimmte": ["habe", "bestimmt"],
-    "bestimmten": ["hätten", "bestimmt"],
     "entschloss": ["habe", "entschlossen"],
     "entschlossen": ["hätten", "entschlossen"],
     "schwärmte": ["habe", "geschwärmt"],
@@ -765,6 +766,19 @@ verben_ersetzung_praeteritum = {
     "kommunizierte": ["habe", "kommuniziert"],
     "einigte": ["habe", "geeinigt"],
     "einigten": ["hätten", "geeinigt"],
+    "gewann": ["habe", "gewonnen"],
+    "gewannen": ["hätten", "gewonnen"],
+    "verlor": ["habe", "verloren"],
+    "oblag": ["sei", "obliegen"],
+    "oblagen": ["seien", "obliegen"],
+    "brach": ["sei", "gebrochen"],
+    "brachen": ["seien", "gebrochen"],
+    "wechselte": ["habe", "gewechselt"],
+    "wechselten": ["hätten", "gewechselt"],
+    "gab": ["habe", "gegeben"],
+    "gaben": ["hätten", "gegeben"],
+    "schädigte": ["habe", "geschädigt"],
+    "schädigten": ["hätten", "geschädigt"],
 }
 
 verben_zusammenfuegung = {
@@ -847,4 +861,11 @@ verben_zusammenfuegung = {
     "auf gehalten": "aufgehalten",
     "durch gehalten": "durchgehalten",
     "durch gegeben": "durchgegeben",
+    "hinzu gekommen": "hinzugekommen",
+    "ein gebrochen": "eingebrochen",
+    "heraus gegeben": "herausgegeben",
+    "rein gesehen": "reingesehen",
+    "vorbei gekommen": "vorbeigekommen",
+    "vor gelegt": "vorgelegt",
+    "weiter geleitet": "weitergeleitet",
 }

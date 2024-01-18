@@ -92,7 +92,7 @@ def ersetze_vergangenheitsform(text, verb, verbersetzung, hilfsverb, hervorhebun
 
         if hervorhebung:
             # Der Punkt in groups(1) ist kein Satzende, sondern für die Indikation einer Abkürzung
-            if any(groups[0].endswith(abbr) and groups[1] == '.' for abbr in ["Fr", "ca", "bzw", "vgl", "usw", "bspw", "etc", "dat"]):
+            if any(groups[0].endswith(abbr) and groups[1] == '.' for abbr in ["Fr", "ca", "bzw", "vgl", "usw", "bspw", "etc", "dat", "insb", "Mio", "Tsd"]):
                 # Wenn groups(3) ein Punkt ist und das Ende von groups(2) eine Zahl, dürfte es sich um eine Währungsangabe handeln
                 if groups[3] == '.' and groups[2][-1].isdigit():
                     # Folgt nach der Abkürzung und Währungsangabe ein "und" oder "oder" als Satzteilende, muss der Leerschlag beim hilfsverb anders gesetzt werden
