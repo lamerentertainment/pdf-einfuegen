@@ -8,7 +8,6 @@ from .dict_db import (
 )
 import re
 
-
 def ersetze_wort(textstelle, ausgangswort, ersetzung, ocr_ersetzung=False, hervorhebung=False):
     """
         Ersetzt das Ausgangswort in einem Textstelle-String durch die angegebene Ersetzung.
@@ -75,8 +74,6 @@ def ersetze_wort(textstelle, ausgangswort, ersetzung, ocr_ersetzung=False, hervo
             textstelle = textstelle.replace(ausgangswort.capitalize() + " ", ersetzung.capitalize() + " ")
 
     return textstelle
-
-import re
 
 def ersetze_vergangenheitsform(text, verb, verbersetzung, hilfsverb, hervorhebung=False):
     # Hier kann man Redewendungen wie z.B. "Kost und Logis", "nach und nach" ausklammern, das Wort nach "und" muss angegeben werden
@@ -220,7 +217,6 @@ def ersetze_vergangenheitsform_old(textstelle, verb, verbersetzung, hilfsverb, h
 
     return textstelle
 
-
 def zeilenumbrueche_entfernen(textstelle, hervorhebung=False):
     # Allfällige Leerzeichen am Ende der Zeile löschen
     textstelle = re.sub(r'\s+$', '', textstelle, flags=re.MULTILINE)
@@ -300,13 +296,13 @@ def zeilenumbrueche_entfernen(textstelle, hervorhebung=False):
 
     return textstelle
 
+# TODO Pendant zu ErsetzeWorttrennungenImText hinzufügen
 
 def umlautkorrektur(string, encoding='utf-8'):
     return (string.encode('latin1') # To bytes, required by 'unicode-escape'
              .decode('unicode-escape') # Perform the actual octal-escaping decode
              .encode('latin1') # 1:1 mapping back to bytes
              .decode(encoding))
-
 
 def ocr_ersetzung(textstelle, hervorhebung=False):
     """
@@ -349,7 +345,6 @@ def ocr_ersetzung(textstelle, hervorhebung=False):
 
     return textstelle
 
-
 def pronomen_ersetzung(textstelle, geschlecht='m', hervorhebung=False):
     """
         Ersetzt Pronomen in einer Textstelle entsprechend dem angegebenen Geschlecht.
@@ -373,7 +368,6 @@ def pronomen_ersetzung(textstelle, geschlecht='m', hervorhebung=False):
         textstelle = ersetze_wort(textstelle, ausgangswort, ersetzung[0], hervorhebung=hervorhebung)
 
     return textstelle
-
 
 def verben_ersetzung(textstelle, hervorhebung=False):
     # zuerst präteritum-Verben ersetzen
@@ -407,7 +401,6 @@ def verben_ersetzung(textstelle, hervorhebung=False):
             )
 
     return textstelle
-
 
 def als_aussage_formatieren(textstelle, geschlecht='m', hervorhebung=False):
     # bei der FUnktions als_aussage_formatieren wird beim Zeilenumbruch entfernen wird hervorhebung bewusst auf
