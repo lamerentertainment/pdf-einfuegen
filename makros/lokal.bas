@@ -235,21 +235,34 @@ Function EntferneWorttrennungenImText(ByVal inputText As String) As String
     
     ' Iteriere durch die Wörter
     For i = 0 To UBound(words)
-        Debug.Print words(i)
         ' Suche nach Bindestrichen
         If InStr(words(i), "-") > 0 Then
             ' Prüfe, dass vor und nach dem Trennzeichen keine Nummer und kein Leerzeichen steht.
             If (Not IsNumeric(Left(words(i), 1)) And Left(words(i), 1) <> " ") _
                 And (Not IsNumeric(Right(words(i), 1)) And Right(words(i), 1) <> " ") Then
-                ' Entferne den Bindestrich
-                words(i) = Replace(words(i), "-", "")
-                Debug.Print words(i)
+                ' Prüfe, ob der Buchstabe vor oder nach dem Bindestrich großgeschrieben ist
+                Dim prevChar As String
+                Dim nextChar As String
+                prevChar = Mid(words(i), InStrRev(words(i), "-") - 1, 1)
+                nextChar = Mid(words(i), InStr(words(i), "-") + 1, 1)
+                
+                If IsUpperCase(prevChar) Or IsUpperCase(nextChar) Then
+                    ' Buchstaben sind großgeschrieben, daher Bindestrich nicht entfernen
+                Else
+                    ' Entferne den Bindestrich
+                    words(i) = Replace(words(i), "-", "")
+                End If
             End If
         End If
     Next i
     
     ' Setze die Wörter wieder zusammen und entferne zusätzliche Leerzeichen
     EntferneWorttrennungenImText = Trim(Join(words, " "))
+End Function
+
+Function IsUpperCase(ByVal str As String) As Boolean
+    ' Hilfsfunktion für EntferneWorttrennungenImText, prüft ob ein Charakter Grossgeschrieben ist.
+    IsUpperCase = UCase(str) = str
 End Function
 
 Function SpezifischeFormatierungen(ByVal textstelle As String) As String
