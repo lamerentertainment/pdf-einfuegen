@@ -190,8 +190,8 @@ Function FunctionZeilenumbruecheEntfernen(ByVal textstelle As String) As String
     
     'Allfällige Leerzeichen am ende der Zeile löschen
     textstelle = ersetze(textstelle, "\s+$", "")
-    'Wenn Buchstabe, Ziffer oder Unterstrich am Ende der Zeile (ausser Bindestrich), Leerschlag hinzufügen
-    textstelle = ersetze(textstelle, "([^-])$", "$1 ")
+    'Wenn Buchstabe, Ziffer oder Unterstrich am Ende der Zeile (ausser Bindestriche - davon gibt es mehrere Arten), Leerschlag hinzufügen
+    textstelle = ersetze(textstelle, "([^-­])$", "$1 ")
     'Bindestrich am Ende der Zeile löschen
     textstelle = ersetze(textstelle, "-$", "")
 
@@ -208,9 +208,7 @@ Function FunctionZeilenumbruecheEntfernen(ByVal textstelle As String) As String
     textstelle = ersetze(textstelle, Chr(171), Chr(34))
     textstelle = ersetze(textstelle, Chr(187), Chr(34))
     
-    'Da der PDF-X-Change Editor Leerzeichen mittlerweile selber löscht, aber Worttrennungen nicht, müssen im Text enthaltene Bindestriche entfernt werden
-    'Allerdings sollten Zahlenräume wie z.b. 1-2 Minuten nicht zu 12 Minuten geändert werden, weshalb nur Worttrennungen entfernt werden sollten, die vorne
-    'und hinten einen Charakter, keine Zahl, haben
+    'KRG Frankenformatierungen setzen
     textstelle = Replace(textstelle, " CHF ", " Fr. ")
     textstelle = Replace(textstelle, " SFR ", " Fr. ")
     textstelle = Replace(textstelle, ".00 ", ".-- ")
@@ -235,6 +233,7 @@ Function EntferneWorttrennungenImText(ByVal inputText As String) As String
     
     ' Iteriere durch die Wörter
     For i = 0 To UBound(words)
+        'Debug.Print "Word before processing: " & words(i) ' Debugging-Print-Anweisung für das aktuelle Wort
         ' Suche nach Bindestrichen
         If InStr(words(i), "-") > 0 Then
             ' Prüfe, dass vor und nach dem Trennzeichen keine Nummer und kein Leerzeichen steht.
@@ -245,12 +244,37 @@ Function EntferneWorttrennungenImText(ByVal inputText As String) As String
                 Dim nextChar As String
                 prevChar = Mid(words(i), InStrRev(words(i), "-") - 1, 1)
                 nextChar = Mid(words(i), InStr(words(i), "-") + 1, 1)
+                'Debug.Print "Prev Char: " & prevChar
+                'Debug.Print "Next Char: " & nextChar
                 
                 If IsUpperCase(prevChar) Or IsUpperCase(nextChar) Then
                     ' Buchstaben sind großgeschrieben, daher Bindestrich nicht entfernen
                 Else
                     ' Entferne den Bindestrich
+                    'Debug.Print "Removing hyphen from word: " & words(i)
                     words(i) = Replace(words(i), "-", "")
+                End If
+            End If
+        End If
+        ' Suche nach Bindestrichen anderer Art (Unicode-Zeichen (U+00AD)- weiches Trennzeichen)
+        If InStr(words(i), "­") > 0 Then
+            ' Prüfe, dass vor und nach dem Trennzeichen keine Nummer und kein Leerzeichen steht.
+            If (Not IsNumeric(Left(words(i), 1)) And Left(words(i), 1) <> " ") _
+                And (Not IsNumeric(Right(words(i), 1)) And Right(words(i), 1) <> " ") Then
+                ' Prüfe, ob der Buchstabe vor oder nach dem Bindestrich großgeschrieben ist
+                Dim prevChar2 As String
+                Dim nextChar2 As String
+                prevChar2 = Mid(words(i), InStrRev(words(i), "­") - 1, 1)
+                nextChar2 = Mid(words(i), InStr(words(i), "­") + 1, 1)
+                Debug.Print "Prev Char2: " & prevChar2
+                Debug.Print "Next Char2: " & nextChar2
+                
+                If IsUpperCase(prevChar2) Or IsUpperCase(nextChar2) Then
+                    ' Buchstaben sind großgeschrieben, daher Bindestrich nicht entfernen
+                Else
+                    ' Entferne den Bindestrich
+                    Debug.Print "Removing hyphen from word: " & words(i)
+                    words(i) = Replace(words(i), "­", "")
                 End If
             End If
         End If
