@@ -6,6 +6,12 @@ pronomen_ersetzungen_m = {
     "ihn": ["diesen", "A"],
     "ihr": ["dieser", "A"],
     "ihm": ["diesem", "A"],
+    "seine": ["dessen", "A"],
+    "seiner": ["dessen", "A"],
+    "seinen": ["dessen", "A"],
+    "ihre": ["deren", "A"],
+    "ihrer": ["deren", "A"],
+    "ihren": ["deren", "A"],
     # Männliche Pronomenersetzung
     "ich": ["er", "B"],
     "mein": ["sein", "B"],
@@ -32,6 +38,12 @@ pronomen_ersetzungen_w = {
     "ihn": ["diesen", "A"],
     "ihr": ["dieser", "A"],
     "ihm": ["diesem", "A"],
+    "seine": ["dessen", "A"],
+    "seiner": ["dessen", "A"],
+    "seinen": ["dessen", "A"],
+    "ihre": ["deren", "A"],
+    "ihrer": ["deren", "A"],
+    "ihren": ["deren", "A"],
     # Weibliche Pronomenersetzung
     "ich": ["sie", "B"],
     "mein": ["ihr", "B"],
@@ -175,18 +187,22 @@ verben_ersetzung_praesens = {
     "vertreibt": "vertreibe",
     "vermag": "vermöge",
     "übt": "übe",
+    "entwickelt": "entwickle",
+    "sitzt": "sitze",
+    "berichtet": "berichte",
+    "versteht": "verstehe",
+    "geniesst": "geniesse",
+    "bekommt": "bekomme",
+    "zieht": "ziehe"
 
     # neuer Absatz in VBA
     "bin": "sei",
     "haben": "hätten",
     "sind": "seien",
-    "machen": "machten",
-    "benötigen": "benötigten",
     "hatten": "hätten",
     "stammen": "stammten",
     "vertreiben": "vertrieben",
-    "entwickelt": "entwickle",
-    "sitzt": "sitze",
+
 
     # neuer Absatz in VBA
     "muss": "müsse",
@@ -249,6 +265,9 @@ verben_ersetzung_praesens = {
     "fliesst": "fliesse",
     "fragt": "frage",
     "scheint": "scheine",
+    "nützt": "nütze",
+    "überwiegt": "überwiege",
+    "brennt": "brenne",
 }
 
 # Dies braucht es in der Python Version gar nicht
@@ -779,6 +798,9 @@ verben_ersetzung_praeteritum = {
     "gaben": ["hätten", "gegeben"],
     "schädigte": ["habe", "geschädigt"],
     "schädigten": ["hätten", "geschädigt"],
+    "stammte": ["habe", "gestammt"],
+    "stammten": ["hätten", "gestammt"],
+    "begleitete": ["habe", "begleitet"],
 }
 
 verben_zusammenfuegung = {
@@ -868,4 +890,5 @@ verben_zusammenfuegung = {
     "vorbei gekommen": "vorbeigekommen",
     "vor gelegt": "vorgelegt",
     "weiter geleitet": "weitergeleitet",
+    "unter gegangen": "untergegangen"
 }
