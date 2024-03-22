@@ -35,7 +35,7 @@ Function ClipBoard_GetData()
    Dim lpClipMemory As Long
    Dim MyString As String
    Dim RetVal As Long
- 
+    
    If OpenClipboard(0&) = 0 Then
       MsgBox "Zwischenablage konnte nicht aufgerufen werden, vielleicht ist sie durch ein anderes Programm geöffnet?"
       Exit Function
@@ -68,7 +68,7 @@ OutOfHere:
    'Variable MyString in string konvertieren
    MyString = CStr(MyString)
    ClipBoard_GetData = MyString
- 
+   
 End Function
 
 
@@ -233,31 +233,80 @@ Function EntferneWorttrennungenImText(ByVal inputText As String) As String
     
     ' Iteriere durch die Wörter
     For i = 0 To UBound(words)
-        'Debug.Print "Word before processing: " & words(i) ' Debugging-Print-Anweisung für das aktuelle Wort
+        'Debug.Print "Word before processing: " & "'" & words(i) & "'" ' Debugging-Print-Anweisung für das aktuelle Wort
+        'Debug.Print "Word length: " & Len(words(i))
+        ' Suche nach Gedankenstrichen
+        If InStr(words(i), ChrW(8211)) > 0 Then
+            'Debug.Print "Gedankenstrich ChrW(8211) gefunden in Wort: " & words(i)
+            ' Prüfe, dass vor und nach dem Trennzeichen keine Nummer und kein Leerzeichen steht.
+            If (Not IsNumeric(Left(words(i), 1)) And Left(words(i), 1) <> " ") _
+                And (Not IsNumeric(Right(words(i), 1)) And Right(words(i), 1) <> " ") Then
+                ' Prüfe, ob der Buchstabe vor oder nach dem Bindestrich großgeschrieben ist
+                Dim prevCharGedankenstrich As String
+                Dim nextCharGedankenstrich As String
+                ' Wenn nicht Len(words(i)) > 1 sondern = 1 dann besteht das "Wort" nur aus dem Bindestrich, weil vorher und nachher ein Leerzeichen stand (wohl ein konvertierter Gedankenstrich),
+                ' womit die benachbarten Zeichen nicht eruiert werden können (Dieser Fall wird von der Löschung unten ausgenommen).
+                If Len(words(i)) > 1 Then
+                    prevCharGedankenstrich = Mid(words(i), InStrRev(words(i), ChrW(8211)) - 1, 1)
+                    nextCharGedankenstrich = Mid(words(i), InStr(words(i), ChrW(8211)) + 1, 1)
+                    'Debug.Print "Prev Char Gedankenstrich: " & prevCharGedankenstrich
+                    'Debug.Print "Next Char Gedankenstrich: " & nextCharGedankenstrich
+                End If
+                
+                If IsUpperCase(prevCharGedankenstrich) Or IsUpperCase(nextCharGedankenstrich) Or Len(words(i)) = 1 Then
+                    ' Benachbarte Buchstaben sind großgeschrieben oder das Wort besteht nur aus einem alleinstehenden Gedankenstrich (Len(words(i)) = 1),
+                    ' daher Bindestrich nicht entfernen
+                    'Debug.Print "Es erfolgt keine Entfernung des Gedankenstrichs, da eine Ausnahmeklausel eingetreten ist"
+                Else
+                    ' Entferne den Bindestrich
+                    'Debug.Print "Removing hyphen (Gedankenstrich) from word: " & words(i)
+                    words(i) = Replace(words(i), ChrW(8211), "")
+                End If
+            End If
+        End If
         ' Suche nach Bindestrichen
-        If InStr(words(i), "-") > 0 Then
+        If InStr(words(i), ChrW(45)) > 0 Then
+            'Debug.Print "Bindestrich ChrW(45) gefunden in Wort: " & "'" & words(i) & "'"
             ' Prüfe, dass vor und nach dem Trennzeichen keine Nummer und kein Leerzeichen steht.
             If (Not IsNumeric(Left(words(i), 1)) And Left(words(i), 1) <> " ") _
                 And (Not IsNumeric(Right(words(i), 1)) And Right(words(i), 1) <> " ") Then
                 ' Prüfe, ob der Buchstabe vor oder nach dem Bindestrich großgeschrieben ist
                 Dim prevChar As String
                 Dim nextChar As String
-                prevChar = Mid(words(i), InStrRev(words(i), "-") - 1, 1)
-                nextChar = Mid(words(i), InStr(words(i), "-") + 1, 1)
-                'Debug.Print "Prev Char: " & prevChar
-                'Debug.Print "Next Char: " & nextChar
+                ' Wenn nicht Len(words(i)) > 1 sondern = 1 dann besteht das "Wort" nur aus dem Bindestrich, weil vorher und nachher ein Leerzeichen stand (wohl ein konvertierter Gedankenstrich),
+                ' womit die benachbarten Zeichen nicht eruiert werden können (Dieser Fall wird von der Löschung unten ausgenommen).
+                If Len(words(i)) > 1 Then
+                    prevChar = Mid(words(i), InStrRev(words(i), ChrW(45)) - 1, 1)
+                    nextChar = Mid(words(i), InStr(words(i), ChrW(45)) + 1, 1)
+                    'Debug.Print "Prev Char Bindestrich: " & prevChar
+                    'Debug.Print "Next Char Bindestrich: " & nextChar
+                    'Debug.Print "Ergebnis IsUpperCase: " & IsUpperCase(prevChar)
+                Else
+                    'bewusst einen kleingeschriebenen Buchstaben setzen, weil IsUpperCase(prevChar) bei mangelnder Definition von prevChar offenbar True ausgibt
+                    prevChar = "s"
+                    nextChar = "s"
+                End If
                 
-                If IsUpperCase(prevChar) Or IsUpperCase(nextChar) Then
-                    ' Buchstaben sind großgeschrieben, daher Bindestrich nicht entfernen
+                If IsUpperCase(prevChar) Or IsUpperCase(nextChar) And Len(words(i)) > 1 Then
+                    ' Benachbarte Buchstaben sind großgeschrieben, daher Bindestrich nicht entfernen
+                    'Debug.Print "Bindestrich wird nicht entfernt, weil eine Ausnahmeklausel eingetreten ist."
+                
+                ElseIf Len(words(i)) = 1 Then
+                    ' Wenn die Wortfolge sich ausschliesslich aus einem Bindestrich zusammensetzt Bindestrich (=1), dann ist die Chance hoch, dass
+                    ' es sich um einen konvertierten Bindestrich handelt, dieser wird zurückkonvertiert
+                    'Debug.Print "Der Bindestrich wird in einen Gedankenstrich konvertiert"
+                     words(i) = Replace(words(i), ChrW(45), ChrW(8211))
                 Else
                     ' Entferne den Bindestrich
-                    'Debug.Print "Removing hyphen from word: " & words(i)
-                    words(i) = Replace(words(i), "-", "")
+                    'Debug.Print "Removing hyphen (Bindestrich) from word: " & "'" & words(i) & "'"
+                    words(i) = Replace(words(i), ChrW(45), "")
+                    'Debug.Print "Resulting in : " & "'" & words(i) & "'"
                 End If
             End If
         End If
-        ' Suche nach Bindestrichen anderer Art (Unicode-Zeichen (U+00AD)- weiches Trennzeichen)
+        ' Suche nach Bindestrichen anderer Art (Unicode-Zeichen (U+00AD)- weiches, bedingtes Trennzeichen, welches PDF-Change neu in Copy-Paste-Text setzt)
         If InStr(words(i), "­") > 0 Then
+            ' Debug.Print "bedingter Trennstrich gefunden in Wort: " & "'" & words(i) & "'"
             ' Prüfe, dass vor und nach dem Trennzeichen keine Nummer und kein Leerzeichen steht.
             If (Not IsNumeric(Left(words(i), 1)) And Left(words(i), 1) <> " ") _
                 And (Not IsNumeric(Right(words(i), 1)) And Right(words(i), 1) <> " ") Then
@@ -266,14 +315,15 @@ Function EntferneWorttrennungenImText(ByVal inputText As String) As String
                 Dim nextChar2 As String
                 prevChar2 = Mid(words(i), InStrRev(words(i), "­") - 1, 1)
                 nextChar2 = Mid(words(i), InStr(words(i), "­") + 1, 1)
-                Debug.Print "Prev Char2: " & prevChar2
-                Debug.Print "Next Char2: " & nextChar2
+                'Debug.Print "Prev Char2 bedingter Bindestrich: " & prevChar2
+                'Debug.Print "Next Char2 bedingter Bindestrich: " & nextChar2
                 
                 If IsUpperCase(prevChar2) Or IsUpperCase(nextChar2) Then
                     ' Buchstaben sind großgeschrieben, daher Bindestrich nicht entfernen
+                    'Debug.Print "Ausnahmeklausel ist eingetreten, bedingter Trennstrich wird nicht entfernt"
                 Else
                     ' Entferne den Bindestrich
-                    Debug.Print "Removing hyphen from word: " & words(i)
+                    'Debug.Print "Removing hyphen (bedinger Bindestrich) from word: " & words(i)
                     words(i) = Replace(words(i), "­", "")
                 End If
             End If
@@ -622,6 +672,36 @@ Private Function PronomenErsetzungMaennlich(textstelle As String) As String
     textstelle = Replace(textstelle, " sie, ", " diese, ")
     textstelle = Replace(textstelle, " sie. ", " diese. ")
     textstelle = Replace(textstelle, "Sie ", "Diese ")
+    'seine
+    textstelle = Replace(textstelle, " seine ", " dessen ")
+    textstelle = Replace(textstelle, " seine, ", " dessen, ")
+    textstelle = Replace(textstelle, " seine. ", " dessen. ")
+    textstelle = Replace(textstelle, "Seine ", "Dessen ")
+    'seiner
+    textstelle = Replace(textstelle, " seiner ", " dessen ")
+    textstelle = Replace(textstelle, " seiner, ", " dessen, ")
+    textstelle = Replace(textstelle, " seiner. ", " dessen. ")
+    textstelle = Replace(textstelle, "Seiner ", "Dessen ")
+    'seinen
+    textstelle = Replace(textstelle, " seinen ", " dessen ")
+    textstelle = Replace(textstelle, " seinen, ", " dessen, ")
+    textstelle = Replace(textstelle, " seinen. ", " dessen. ")
+    textstelle = Replace(textstelle, "Seinen ", "Dessen ")
+    'ihre
+    textstelle = Replace(textstelle, " ihre ", " deren ")
+    textstelle = Replace(textstelle, " ihre, ", " deren, ")
+    textstelle = Replace(textstelle, " ihre. ", " deren. ")
+    textstelle = Replace(textstelle, "Ihre ", "Deren ")
+    'ihrer
+    textstelle = Replace(textstelle, " ihrer ", " deren ")
+    textstelle = Replace(textstelle, " ihrer, ", " deren, ")
+    textstelle = Replace(textstelle, " ihrer. ", " deren. ")
+    textstelle = Replace(textstelle, "Ihrer ", "Deren ")
+    'ihren
+    textstelle = Replace(textstelle, " ihren ", " deren ")
+    textstelle = Replace(textstelle, " ihren, ", " deren, ")
+    textstelle = Replace(textstelle, " ihren. ", " deren. ")
+    textstelle = Replace(textstelle, "Ihren ", "Deren ")
 
     'Ich
     textstelle = Replace(textstelle, " ich ", " er ")
@@ -877,6 +957,36 @@ Private Function PronomenErsetzungWeiblich(textstelle As String) As String
     textstelle = Replace(textstelle, " sie, ", " diese, ")
     textstelle = Replace(textstelle, " sie. ", " diese. ")
     textstelle = Replace(textstelle, "Sie ", "Diese ")
+    'seine
+    textstelle = Replace(textstelle, " seine ", " dessen ")
+    textstelle = Replace(textstelle, " seine, ", " dessen, ")
+    textstelle = Replace(textstelle, " seine. ", " dessen. ")
+    textstelle = Replace(textstelle, "Seine ", "Dessen ")
+    'seiner
+    textstelle = Replace(textstelle, " seiner ", " dessen ")
+    textstelle = Replace(textstelle, " seiner, ", " dessen, ")
+    textstelle = Replace(textstelle, " seiner. ", " dessen. ")
+    textstelle = Replace(textstelle, "Seiner ", "Dessen ")
+    'seinen
+    textstelle = Replace(textstelle, " seinen ", " dessen ")
+    textstelle = Replace(textstelle, " seinen, ", " dessen, ")
+    textstelle = Replace(textstelle, " seinen. ", " dessen. ")
+    textstelle = Replace(textstelle, "Seinen ", "Dessen ")
+    'ihre
+    textstelle = Replace(textstelle, " ihre ", " deren ")
+    textstelle = Replace(textstelle, " ihre, ", " deren, ")
+    textstelle = Replace(textstelle, " ihre. ", " deren. ")
+    textstelle = Replace(textstelle, "Ihre ", "Deren ")
+    'ihrer
+    textstelle = Replace(textstelle, " ihrer ", " deren ")
+    textstelle = Replace(textstelle, " ihrer, ", " deren, ")
+    textstelle = Replace(textstelle, " ihrer. ", " deren. ")
+    textstelle = Replace(textstelle, "Ihrer ", "Deren ")
+    'ihren
+    textstelle = Replace(textstelle, " ihren ", " deren ")
+    textstelle = Replace(textstelle, " ihren, ", " deren, ")
+    textstelle = Replace(textstelle, " ihren. ", " deren. ")
+    textstelle = Replace(textstelle, "Ihren ", "Deren ")
     
     'Ich
     textstelle = Replace(textstelle, " ich ", " sie ")
@@ -1255,10 +1365,6 @@ Private Function VerbenErsetzung(textstelle As String) As String
     textstelle = Replace(textstelle, " beauftragt ", " beauftrage ")
     textstelle = Replace(textstelle, " beauftragt,", " beauftrage,")
     textstelle = Replace(textstelle, " beauftragt.", " beauftrage.")
-    'Sie/er verfügt
-    textstelle = Replace(textstelle, " verfügt ", " verfüge ")
-    textstelle = Replace(textstelle, " verfüge,", " verfüge,")
-    textstelle = Replace(textstelle, " verfüge.", " verfüge.")
     'Sie/er geniesst
     textstelle = Replace(textstelle, " geniesst ", " geniesse ")
     textstelle = Replace(textstelle, " geniesst,", " geniesse,")
@@ -1267,6 +1373,10 @@ Private Function VerbenErsetzung(textstelle As String) As String
     textstelle = Replace(textstelle, " bekommt ", " bekomme ")
     textstelle = Replace(textstelle, " bekommt,", " bekomme,")
     textstelle = Replace(textstelle, " bekommt.", " bekomme.")
+    'Sie/er zieht
+    textstelle = Replace(textstelle, " zieht ", " ziehe ")
+    textstelle = Replace(textstelle, " zieht,", " ziehe,")
+    textstelle = Replace(textstelle, " zieht.", " ziehe.")
     
     '(Ich) bin
     textstelle = Replace(textstelle, " bin ", " sei ")
@@ -1549,6 +1659,10 @@ Private Function VerbenErsetzung(textstelle As String) As String
     textstelle = Replace(textstelle, " überwiegt ", " überwiege ")
     textstelle = Replace(textstelle, " überwiegt,", " überwiege,")
     textstelle = Replace(textstelle, " überwiegt.", " überwiege.")
+    'es brennt
+    textstelle = Replace(textstelle, " brennt ", " brenne ")
+    textstelle = Replace(textstelle, " brennt,", " brenne,")
+    textstelle = Replace(textstelle, " brennt.", " brenne.")
     
     
     
@@ -1632,6 +1746,9 @@ Private Function VerbenErsetzung(textstelle As String) As String
     'er meinte (es habe gemeint)
     textstelle = Replace(textstelle, " erklärte,", " habe erklärt,")
     textstelle = Replace(textstelle, " erklärte.", " habe erklärt.")
+    'er dachte (er habe gedacht)
+    textstelle = Replace(textstelle, " dachte,", " habe gedacht,")
+    textstelle = Replace(textstelle, " dachte.", " habe gedacht.")
     
     'Das Returnstatment funktioniert in VBA inden man den Namen der Funktion mit dem Return gleichsetzt
     VerbenErsetzung = textstelle
@@ -2673,6 +2790,14 @@ Private Function VergangenheitsVerbenErsetzung(text As String)
     text = ersetzeVergangenheitsform(text, " lautete ", " habe ", "gelautet")
     'Sie lauteten auf -> Sie hätten auf gelautet.
     text = ersetzeVergangenheitsform(text, " lauteten ", " hätten ", "gelautet")
+    'Es stammte daher -> Es habe daher gestammt.
+    text = ersetzeVergangenheitsform(text, " stammte ", " habe ", "gestammt")
+    'Sie stammten da her -> Sie hätten da her gestammt.
+    text = ersetzeVergangenheitsform(text, " stammten ", " hätten ", "gestammt")
+    'Ich begleitete ihn -> Er habe diesen begleitet.
+    text = ersetzeVergangenheitsform(text, " begleitete ", " habe ", "begleitet")
+    'Wir begleiteten sie -> Sie hätten diese begleitet.
+    text = ersetzeVergangenheitsform(text, " begleiteten ", " hätten ", "begleitet")
 
 
     VergangenheitsVerbenErsetzung = text
@@ -2785,6 +2910,8 @@ Function VerbenZusammenfuegen(text As String)
     text = VerbenZusammenfuegung(text, "weiter geleitet", "weitergeleitet")
     text = VerbenZusammenfuegung(text, "aus gefüllt", "ausgefüllt")
     text = VerbenZusammenfuegung(text, "vorbei gebracht", "vorbeigebracht")
+    text = VerbenZusammenfuegung(text, "an gegeben", "angegeben")
+    text = VerbenZusammenfuegung(text, "unter gegangen", "untergegangen")
 
     VerbenZusammenfuegen = text
 
@@ -3041,3 +3168,22 @@ Private Function ExtractWordAfterArt(MyString As String)
     ExtractWordAfterArt = result
 End Function
 
+Sub ShowUnicodeValueOfSelectedCharacter()
+    Dim selectedText As String
+    Dim selectedChar As String
+    Dim unicodeValue As Long
+    
+    If Selection.Type = wdSelectionIP Then
+        MsgBox "Bitte markieren Sie einen Text in Word.", vbExclamation
+        Exit Sub
+    End If
+    
+    selectedText = Selection.text
+    selectedChar = Left(selectedText, 1)
+    
+    ' Unicode-Wert des ersten ausgewählten Zeichens ermitteln
+    unicodeValue = AscW(selectedChar)
+    
+    ' Unicode-Wert anzeigen
+    MsgBox "Unicode-Wert des ausgewählten Zeichens: " & unicodeValue, vbInformation
+End Sub
