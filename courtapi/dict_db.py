@@ -193,7 +193,7 @@ verben_ersetzung_praesens = {
     "versteht": "verstehe",
     "geniesst": "geniesse",
     "bekommt": "bekomme",
-    "zieht": "ziehe"
+    "zieht": "ziehe",
 
     # neuer Absatz in VBA
     "bin": "sei",
